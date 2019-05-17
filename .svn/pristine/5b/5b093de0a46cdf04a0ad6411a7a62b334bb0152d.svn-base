@@ -1,0 +1,209 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
+using System.Net;
+using System.Collections.Specialized;
+using System.Web.Script.Serialization;
+using System.Collections;
+using PSNetworking;
+
+namespace UPS {
+    /// <summary>
+    /// Interaktionslogik für LoginWindow.xaml
+    /// </summary>
+    public partial class LoginWindow: Window {
+        /*
+        private CookieAwareWebClient webclient;
+        public CookieAwareWebClient WebClient {
+            get { return this.webclient; }
+            set { this.webclient=value; }
+        }*/
+
+        public Dictionary<string,string> Settings { get; set; }
+
+        public LoginWindow() {
+            InitializeComponent();
+
+            textBoxUser.Text = System.Environment.UserName.ToUpper();
+        }
+
+        private void buttonOK_Click(object sender, RoutedEventArgs e) {
+
+            if(this.textBoxUser.Text.Length == 0 || this.passwordBox.Password.Length == 0) {
+                MessageBox.Show("Invalid credentials", "Invalid Credentials", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            bool debug = false;
+            if(this.debugCheckBox.IsChecked == true) {
+                debug = true;
+            }
+
+            ////this.webclient = new CookieAwareWebClient();       //important delete
+            //webclient.UseDefaultCredentials = true;
+            //UPSNetworkManager networkManager = UPSNetworkManager.getInstance();
+            NetworkManager networkManager = NetworkManager.getInstance();
+            networkManager.Headers.Clear();
+
+            NameValueCollection data = new NameValueCollection();
+            data.Add("option", "credential");
+            data.Add("loginButton2", "Login");
+            data.Add("target", "https://projectsuite.aeat.allianz.at");
+            data.Add("Ecom_User_ID", this.textBoxUser.Text.Trim());
+            data.Add("Ecom_Password", this.passwordBox.Password);
+
+            //byte[] resp = webclient.UploadValues("https://apam0001.aeat.allianz.at/nidp/idff/sso?sid=0", data);
+            byte[] resp = networkManager.UploadValues("https://apam0001.aeat.allianz.at/nidp/idff/sso?sid=0", data);
+
+            string cookieString;
+            if(debug) {
+                /*
+                string response = Encoding.ASCII.GetString(resp);
+                MessageBox.Show("Response" + Environment.NewLine + response);
+                */
+                cookieString = "";
+                //foreach(Cookie c in webclient.ResponseCookies) {
+                foreach(Cookie c in networkManager.ResponseCookies) {
+                    cookieString = cookieString + c.Name + "=" + c.Value + Environment.NewLine;
+                }
+                MessageBox.Show("Login Response Cookies" + Environment.NewLine + cookieString);
+                /*
+                string tst = "";
+                foreach(string header in webclient.ResponseHeaders.AllKeys) {
+                    tst = tst + header;
+                }
+                MessageBox.Show(tst);*/
+            }
+
+            string jSessionID = "";
+            if(networkManager.ResponseCookies["JSESSIONID"] != null) {
+                jSessionID = networkManager.ResponseCookies["JSESSIONID"].Name + "=" + networkManager.ResponseCookies["JSESSIONID"].Value;
+            }
+            
+            if(debug) {
+                MessageBox.Show(jSessionID);
+            }
+            
+            networkManager.Headers.Add(HttpRequestHeader.Cookie, jSessionID + ".LX-PWEB34");
+
+            /*
+            foreach(string h in webclient.Headers.AllKeys) { s = s + h; }
+            MessageBox.Show("Headers" + Environment.NewLine + s);
+            */
+            
+            string response = networkManager.DownloadString("https://projectsuite.aeat.allianz.at/projectsuite/");
+
+            //MessageBox.Show("Response" + Environment.NewLine + response);
+            //cookieString = "";
+            string cookies="";
+            //cookies = "";
+            foreach(Cookie c in networkManager.ResponseCookies) {
+                //cookieString = cookieString + c.Name + "=" + c.Value + Environment.NewLine;
+                cookies = cookies + ";" + c.Name + "=" + c.Value;
+            }
+
+            if(debug) {
+                //MessageBox.Show("Cookies" + Environment.NewLine + cookieString);
+                MessageBox.Show("Cookies" + cookies.Replace(";", Environment.NewLine));
+            }
+
+            networkManager.Headers.Add(HttpRequestHeader.Cookie, cookies);
+            networkManager.Headers.Add(HttpRequestHeader.Cookie,
+                ";allianzInternet=true"
+                //+";NETMIND_SID=c55b08f4aa-28d01f60aa-9dd11b20aa-a041bb97aa-1499782306"
+                //+ ";NETMIND_PERMSID=0e8303deaa-857c1ee1aa-cf715db1aa-4d4a910caa-1465800314"
+                + ";allianzPortalView=https://portanova.aeat.allianz.at/portanova/portal/default"
+                //+";LtpaToken=AAECAzU3NkE5MUEzNTc2QkUzMjNDTj1QaGlsaXBwIFNjaHVua2VyL09VPUdEL089QWxsaWFuei9DPUFUD1moXEgZfWVleJdiNV9yZIOgiwU="
+            );
+            
+            if(debug) {
+                cookieString = "";
+                foreach(string cookie in networkManager.Headers.GetValues("Cookie")) {
+                    cookieString = cookieString + cookie;
+                }
+            
+                MessageBox.Show("WebClient Cookies" + Environment.NewLine + cookieString);
+            }
+
+            /*
+            string headerString;
+            headerString = "";
+            foreach(string s in webclient.ResponseHeaders.AllKeys) {
+                headerString = headerString + s + System.Environment.NewLine;
+            }
+            MessageBox.Show("Projectsuite Headers" + headerString);
+             * */
+
+            string ssoResponse = "";
+            try {
+                ssoResponse = networkManager.UploadString("https://projectsuite.aeat.allianz.at/projectsuite/rest/sso", "");
+            } catch(WebException webex) {
+                MessageBox.Show("Login failed" + Environment.NewLine + webex.Message);
+                textBlockStatus.Text = "Login failed. Wrong password?";
+                return;
+            }
+
+            textBlockStatus.Text = "";
+
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            Hashtable responseObject = serializer.Deserialize<Hashtable>(ssoResponse);
+            //string userID = (string)responseObject["user"]["id"];
+            
+            //MessageBox.Show(responseObject.Count.ToString());
+
+            Dictionary<string,object> user = (Dictionary<string,object>)responseObject["user"];
+            string userID = user["id"].ToString();
+            
+            Dictionary<string,object> tenant = (Dictionary<string,object>)user["tenant"];
+            string tenantName = tenant["name"].ToString();
+            string tenantVal = tenant["value"].ToString();
+
+            Dictionary<string, object> tokenObject = (Dictionary<string, object>)responseObject["token"];
+            string token = tokenObject["token"].ToString().Trim();
+            
+            if(debug) {
+                MessageBox.Show("userID: " + userID + System.Environment.NewLine +
+                            "tenantName: " + tenantName + System.Environment.NewLine +
+                            "tenantVal: " + tenantVal + System.Environment.NewLine +
+                            "token: " + token + System.Environment.NewLine);
+            }
+            
+            this.Settings["userid"] = userID;
+            this.Settings["tenantname"] = tenantName;
+            this.Settings["tenantvalue"] = tenantVal;
+
+            networkManager.Headers.Add(HttpRequestHeader.ContentType, "application/json;charset=UTF-8");
+            //webclient.Headers.Add("X-Authorization", "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJBNDkzOCIsImlzcyI6IkFMTElBTlogQU1PUyBBQlMgQ09SRSIsImlhdCI6MTUwMDAzNjUwOX0.29l8cG88O2UXjVfwJac7Ax7ZsWkLPZY7gh5jASIJNnw");
+            networkManager.Headers.Add("X-Authorization", token);
+            
+            /*
+            string auth = "";
+            foreach(string a in webclient.Headers.GetValues("X-Authorization")) {
+                auth = auth + a;
+            }
+            MessageBox.Show("WebClient Authorization" + Environment.NewLine + auth);*/
+
+            /*MainWindow mw = (MainWindow)Application.Current.MainWindow;
+            mw.webclient = webclient;*/
+            MainWindow mw = (MainWindow)this.Owner;
+            mw.textBlockLoginStatus.Text = "Logged in as " + userID;
+            
+            this.DialogResult = true;
+            this.Close();
+        }
+        
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e) {
+            //this.Owner = null;
+            base.OnClosing(e);
+        }
+    }
+}

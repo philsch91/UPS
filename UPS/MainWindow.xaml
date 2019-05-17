@@ -1,0 +1,50 @@
+﻿<Window x:Class="UPS.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Project Suite" Height="420" Width="550" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded">
+    
+    <Grid>
+        <Menu Height="23" HorizontalAlignment="Stretch" Name="menu1" VerticalAlignment="Top">
+            <MenuItem Name="loginMenuItem" Header="Login" Click="loginMenuItem_Click" />
+            <MenuItem Name="infoMenuItem" Header="Info" Click="infoMenuItem_Click" />
+        </Menu>
+        <Button Content="Login" Height="23" HorizontalAlignment="Center" Margin="417,28,11,0" Name="buttonLogin" VerticalAlignment="Top" Width="75" Click="buttonLogin_Click" IsEnabled="False" Visibility="Hidden" />
+        <Button Content="Send" Height="23" HorizontalAlignment="Center" Margin="440,346,12,0" Name="buttonSend" VerticalAlignment="Top" Width="75" Click="buttonSend_Click" IsEnabled="True"/>
+        <TextBlock Height="23" HorizontalAlignment="Center" Margin="12,29,276,0" Name="textBlockLoginStatus" Text="" VerticalAlignment="Top" Width="240" TextAlignment="Left" />
+        
+        <Button Content="My Tasks" Height="23" HorizontalAlignment="Center" Margin="12,88,444,0" Name="buttonMyTasks" VerticalAlignment="Top" Width="72" Click="tasks_Click" />
+        <Button Content="Last Booked" Height="23" HorizontalAlignment="Center" Margin="90,88,366,0" Name="buttonLastBooked" VerticalAlignment="Top" Width="72" Click="tasks_Click" />
+        <Button Content="Global Tasks" Height="23" HorizontalAlignment="Center" Margin="168,88,288,0" Name="buttonGlobalTasks" VerticalAlignment="Top" Width="72" Click="tasks_Click" />
+        <Button Content="Team Tasks" Height="23" HorizontalAlignment="Center" Margin="246,88,210,0" Name="buttonTeamTasks" VerticalAlignment="Top" Width="72" Click="tasks_Click" />        
+        <Button Content="Update Tasks" Height="23" HorizontalAlignment="Center" Margin="406,59,0,0" Name="buttonTasks" VerticalAlignment="Top" Width="75" Click="buttonTasks_Click" Visibility="Hidden" />
+        <ComboBox Height="23" HorizontalAlignment="Center" Margin="12,117,210,0" Name="comboBoxTasks" VerticalAlignment="Top" Width="306" SelectionChanged="comboBoxTasks_SelectionChanged" />
+        
+        <!-- Day/Week/Month Button -->
+        <Button Content="Day" Height="23" HorizontalAlignment="Center" Margin="370,256,116,0" Name="buttonDayBooking" VerticalAlignment="Top" Width="42" Click="bookingPeriod_Click" IsEnabled="False" />
+        <Button Content="Week" Height="23" HorizontalAlignment="Center" Margin="422,256,64,0" Name="buttonWeekBooking" VerticalAlignment="Top" Width="42" Click="bookingPeriod_Click" />
+        <Button Content="Month" Height="23" HorizontalAlignment="Center" Margin="474,256,12,0" Name="buttonMonthBooking" VerticalAlignment="Top" Width="42" Click="bookingPeriod_Click" />
+
+        <Label Content="Start Week -" Height="27" HorizontalAlignment="Center" Margin="152,216,270,0" Name="labelWeekNumber" VerticalAlignment="Top" Width="81" Visibility="Hidden" />
+        <TextBox Height="23" Margin="229,218,242,0" Name="textBoxWeekNumber" VerticalAlignment="Top" HorizontalAlignment="Center" Width="32" MaxLength="3" TextAlignment="Right" Visibility="Hidden" />
+        <Button Content="Last Week" Height="23" HorizontalAlignment="Center" Margin="374,285,86,0" Name="buttonLastWeekBooking" VerticalAlignment="Top" Width="68" Click="bookingPeriod_Click" />
+        <Button Content="Last Month" Height="23" HorizontalAlignment="Center" Margin="448,285,12,0" Name="buttonLastMonthBooking" VerticalAlignment="Top" Width="68" Click="bookingPeriod_Click" />
+
+        <Label Height="28" HorizontalAlignment="Center" Margin="224,175,264,0" Name="labelWorkAmount" Content="Hours" VerticalAlignment="Top" Width="41" />
+        <TextBox Height="23" Margin="190,176,306,0" Name="textBoxWorkAmount" VerticalAlignment="Top" HorizontalAlignment="Center" Width="32" MaxLength="3" TextAlignment="Right" />
+
+        <Label Content="%" Height="28" HorizontalAlignment="Center" Margin="298,175,210,0" Name="labelPercentage" VerticalAlignment="Top" />
+        <TextBox Height="23" Margin="264,176,232,0" Name="textBoxPercentage" VerticalAlignment="Top" HorizontalAlignment="Center" Width="32" MaxLength="3" TextAlignment="Right" />
+        
+        <Label Content="Category" Height="27" HorizontalAlignment="Center" Margin="12,145,410,0" Name="labelCategory" VerticalAlignment="Top" Width="105" />
+        <ComboBox Height="23" HorizontalAlignment="Center" Margin="92,145,210,0" Name="comboBoxCategory" VerticalAlignment="Top" Width="227" />
+        
+        <Label Content="Activity" Height="27" HorizontalAlignment="Center" Margin="12,174,410,0" Name="labelActivity" VerticalAlignment="Top" Width="105" />
+        <TextBox Height="25" HorizontalAlignment="Center" Margin="12,207,210,0" Name="textBoxActivity" VerticalAlignment="Top" Width="306" />
+        <TextBlock Height="23" HorizontalAlignment="Center" Margin="12,347,436,0" Name="textBlockVersion" Text="" VerticalAlignment="Top" Width="80" />
+        <TextBlock Height="23" HorizontalAlignment="Center" Margin="12,58,366,0" Name="textBlockMonthHours" Text="" VerticalAlignment="Top" Width="149" />
+        
+        <!-- <Label Content="Start" Height="27" HorizontalAlignment="Center" Margin="102,202,320,0" Name="startDateLabel" VerticalAlignment="Top" Width="81" /> -->
+        <!-- <DatePicker Height="25" HorizontalAlignment="Left" Margin="147,203,0,0" Name="startDatePicker" VerticalAlignment="Top" Width="115" /> -->
+        <Calendar Height="170" HorizontalAlignment="Center" Margin="336,88,12,0" Name="calendar" VerticalAlignment="Top" Width="180" SelectionMode="SingleRange" SelectedDatesChanged="calendar_SelectedDatesChanged" />
+    </Grid>
+</Window>

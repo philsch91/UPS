@@ -1,0 +1,507 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using System.Net;
+using System.Web.Script.Serialization;
+using System.Collections;
+using System.Collections.Specialized;
+
+namespace UPS {
+    /// <summary>
+    /// Interaktionslogik für MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow: Window {
+
+        private CookieAwareWebClient webclient;         //private
+        private Dictionary<string, string> settings;    //change to settings object
+        private List<object> listTask;
+        private List<object> listCategory;
+
+        public MainWindow() {
+            InitializeComponent();
+            this.buttonDayBooking.IsEnabled = false;
+            this.buttonGlobalTasks.IsEnabled = false;
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e) {
+            LoginWindow loginWindow = new LoginWindow();
+            loginWindow.Owner = this;
+            this.webclient = new CookieAwareWebClient();
+            loginWindow.WebClient = this.webclient;
+            this.settings = new Dictionary<string, string>();
+            loginWindow.Settings = this.settings;
+
+            Nullable<bool> res = loginWindow.ShowDialog();
+            if(!loginWindow.DialogResult.HasValue || !loginWindow.DialogResult.Value) {
+                return;
+            }
+            this.buttonTasks_Click(this, null);
+            //string productVersion = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductVersion
+            string fileVersion = System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location).FileVersion;
+            this.textBlockVersion.Text = "Version " + fileVersion;
+        }
+
+        private void buttonLogin_Click(object sender, RoutedEventArgs e) {
+            LoginWindow loginWindow = new LoginWindow();
+            loginWindow.Owner = this;
+            this.webclient = new CookieAwareWebClient();
+            loginWindow.WebClient = this.webclient;
+            this.settings = new Dictionary<string, string>();
+            loginWindow.Settings = this.settings;
+            
+            loginWindow.Show();
+        }
+
+        //change to ComboBox Event
+        private void buttonTasks_Click(object sender, RoutedEventArgs e) {            
+            //MessageBox.Show(DateTime.Today.);
+            //Int32 unixTimestamp = Int32.Parse(DateTime.Today.Subtract(new DateTime(1970, 1, 1)).TotalSeconds.ToString());
+            string unixTimestamp = DateTime.Today.Subtract(new DateTime(1970,1,1)).TotalSeconds.ToString();
+            string timestamp = unixTimestamp + "000";
+            //MessageBox.Show(timestamp);
+            
+            NameValueCollection opts = new NameValueCollection();
+            opts.Add("date", timestamp);      //"1499983200000"
+            opts.Add("incl", "true");
+            opts.Add("taskGroup","globalTasks");
+            opts.Add("tenant",settings["tenantvalue"]);
+            opts.Add("userId",settings["userid"]);
+            opts.Add("viewType","time");
+
+            webclient.QueryString = opts;
+            webclient.Headers.Remove(HttpRequestHeader.ContentType);
+            
+            //byte[] response = webclient.UploadValues("https://projectsuite.aeat.allianz.at/projectsuite/rest/tasksByDateAndGroupAndUser","GET",opts);
+            string json = webclient.DownloadString("https://projectsuite.aeat.allianz.at/projectsuite/rest/tasksByDateAndGroupAndUser");
+
+            webclient.QueryString.Clear();
+            webclient.Headers.Add(HttpRequestHeader.ContentType, "application/json;charset=UTF-8");
+            
+            //string json = Encoding.ASCII.GetString(response);
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            this.listTask = serializer.Deserialize<List<object>>(json);
+            
+            this.comboBoxTasks.Items.Clear();
+            foreach(Dictionary<string, object> task in this.listTask) {
+                //string taskName = (string)task["name"];
+                string taskName = task["name"].ToString();
+                this.comboBoxTasks.Items.Add(taskName);
+            }
+        }
+
+        private void tasks_Click(object sender, RoutedEventArgs e) {
+            //MessageBox.Show(e.Source.ToString() + Environment.NewLine + e.OriginalSource.ToString());
+            //Button test = (Button) e.OriginalSource;
+            //MessageBox.Show(test.Name);
+
+            string taskGroup = "globalTasks";
+
+            //if(buttonPeriod == this.buttonDayBooking) {
+            if(sender == this.buttonMyTasks) {
+                //this.buttonMyTasks.BorderBrush = new SolidColorBrush(Colors.LightBlue);
+                this.buttonMyTasks.IsEnabled = false;
+                this.buttonLastBooked.IsEnabled = true;
+                this.buttonGlobalTasks.IsEnabled = true;
+                this.buttonTeamTasks.IsEnabled = true;
+                taskGroup = "myTasks";
+            }
+            if(sender == this.buttonLastBooked) {
+                this.buttonMyTasks.IsEnabled = true;
+                this.buttonLastBooked.IsEnabled = false;
+                this.buttonGlobalTasks.IsEnabled = true;
+                this.buttonTeamTasks.IsEnabled = true;
+                taskGroup = "lastBookedTasks";
+            }
+            if(sender == this.buttonGlobalTasks) {
+                this.buttonMyTasks.IsEnabled = true;
+                this.buttonLastBooked.IsEnabled = true;
+                this.buttonGlobalTasks.IsEnabled = false;
+                this.buttonTeamTasks.IsEnabled = true;
+                taskGroup = "globalTasks";
+            }
+            if(sender == this.buttonTeamTasks) {
+                this.buttonMyTasks.IsEnabled = true;
+                this.buttonLastBooked.IsEnabled = true;
+                this.buttonGlobalTasks.IsEnabled = true;
+                this.buttonTeamTasks.IsEnabled = false;
+                taskGroup = "teamTasks";
+            }
+
+            //MessageBox.Show(DateTime.Today.);
+            //Int32 unixTimestamp = Int32.Parse(DateTime.Today.Subtract(new DateTime(1970, 1, 1)).TotalSeconds.ToString());
+            string unixTimestamp = DateTime.Today.Subtract(new DateTime(1970, 1, 1)).TotalSeconds.ToString();
+            string timestamp = unixTimestamp + "000";
+            //MessageBox.Show(timestamp);
+
+            NameValueCollection opts = new NameValueCollection();
+            opts.Add("date", timestamp);      //"1499983200000"
+            opts.Add("incl", "true");
+            opts.Add("taskGroup", taskGroup);
+            opts.Add("tenant", settings["tenantvalue"]);
+            opts.Add("userId", settings["userid"]);
+            opts.Add("viewType", "time");
+
+            webclient.QueryString = opts;
+            webclient.Headers.Remove(HttpRequestHeader.ContentType);
+
+            //byte[] response = webclient.UploadValues("https://projectsuite.aeat.allianz.at/projectsuite/rest/tasksByDateAndGroupAndUser","GET",opts);
+            string json = webclient.DownloadString("https://projectsuite.aeat.allianz.at/projectsuite/rest/tasksByDateAndGroupAndUser");
+
+            webclient.QueryString.Clear();
+            webclient.Headers.Add(HttpRequestHeader.ContentType, "application/json;charset=UTF-8");
+
+            //string json = Encoding.ASCII.GetString(response);
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            this.listTask = serializer.Deserialize<List<object>>(json);
+
+            this.comboBoxTasks.Items.Clear();
+            foreach(Dictionary<string, object> task in this.listTask) {
+                //string taskName = (string)task["name"];
+                string taskName = task["name"].ToString();
+                this.comboBoxTasks.Items.Add(taskName);
+            }
+        }
+
+        private void bookingPeriod_Click(object sender, RoutedEventArgs e) {
+            //Button buttonPeriod = (Button)e.OriginalSource;
+            //MessageBox.Show(buttonPeriod.Name);
+
+            //if(buttonPeriod == this.buttonDayBooking) {
+            if(sender == this.buttonDayBooking) {
+                this.buttonDayBooking.IsEnabled = false;
+                this.buttonWeekBooking.IsEnabled = true;
+                this.buttonMonthBooking.IsEnabled = true;
+                this.buttonLastWeekBooking.IsEnabled = true;
+                this.buttonLastMonthBooking.IsEnabled = true;
+            }
+            if(sender == this.buttonWeekBooking) {
+                this.buttonDayBooking.IsEnabled = true;
+                this.buttonWeekBooking.IsEnabled = false;
+                this.buttonMonthBooking.IsEnabled = true;
+                this.buttonLastWeekBooking.IsEnabled = true;
+                this.buttonLastMonthBooking.IsEnabled = true;
+            }
+            if(sender == this.buttonMonthBooking) {
+                this.buttonDayBooking.IsEnabled = true;
+                this.buttonWeekBooking.IsEnabled = true;
+                this.buttonMonthBooking.IsEnabled = false;
+                this.buttonLastWeekBooking.IsEnabled = true;
+                this.buttonLastMonthBooking.IsEnabled = true;
+            }
+            if(sender == this.buttonLastWeekBooking) {
+                this.buttonDayBooking.IsEnabled = true;
+                this.buttonWeekBooking.IsEnabled = true;
+                this.buttonMonthBooking.IsEnabled = true;
+                this.buttonLastWeekBooking.IsEnabled = false;
+                this.buttonLastMonthBooking.IsEnabled = true;
+            }
+            if(sender == this.buttonLastMonthBooking) {
+                this.buttonDayBooking.IsEnabled = true;
+                this.buttonWeekBooking.IsEnabled = true;
+                this.buttonMonthBooking.IsEnabled = true;
+                this.buttonLastWeekBooking.IsEnabled = true;
+                this.buttonLastMonthBooking.IsEnabled = false;
+            }
+        }
+
+        private void comboBoxTasks_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+            //MessageBox.Show(comboBoxTasks.SelectedItem.ToString());
+            string taskId = "";
+            foreach(Dictionary<string, object> task in this.listTask) {
+                //SelectedItem.ToString()
+                if(task["name"].ToString() == comboBoxTasks.SelectedValue.ToString()) {
+                    //MessageBox.Show(task["id"].ToString());
+                    taskId = task["id"].ToString();
+                }
+            }
+            if(taskId == "") {
+                return;
+            }
+
+            string unixTimestamp = DateTime.Today.Subtract(new DateTime(1970, 1, 1)).TotalSeconds.ToString();
+            string timestamp = unixTimestamp + "000";
+            
+            NameValueCollection opts = new NameValueCollection();
+            opts.Add("id", taskId);
+            //opts.Add("date", "1500328800000");
+            opts.Add("date", timestamp);
+            opts.Add("tenant", settings["tenantvalue"]);
+            //opts.Add("userId", settings["userid"]);
+
+            webclient.QueryString = opts;
+            webclient.Headers.Remove(HttpRequestHeader.ContentType);
+
+            //?date=1500328800000&id=2017-06-09+09:22:35.542451&tenant=O
+            string json = webclient.DownloadString("https://projectsuite.aeat.allianz.at/projectsuite/rest/categoryDomainsByTaskIdAndDate");
+
+            webclient.QueryString.Clear();
+            webclient.Headers.Add(HttpRequestHeader.ContentType, "application/json;charset=UTF-8");
+
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            this.listCategory = serializer.Deserialize<List<object>>(json);
+            
+            this.comboBoxCategory.Items.Clear();
+            foreach(Dictionary<string, object> cat in this.listCategory) {
+                string categoryName = cat["name"].ToString();
+                this.comboBoxCategory.Items.Add(categoryName);
+            }
+        }
+
+        private void buttonSend_Click(object sender, RoutedEventArgs e) {
+            if(webclient == null) {
+                MessageBox.Show("You are not logged in", "Login Failure", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            if(comboBoxTasks.SelectedValue == null) {
+                comboBoxCategory.BorderBrush = new SolidColorBrush(Colors.Red);
+                return;
+            }
+            if(comboBoxCategory.SelectedValue == null) {
+                //MessageBox.Show("No Category selected");
+                comboBoxCategory.BorderBrush = new SolidColorBrush(Colors.Red);
+                return;
+            }
+            this.comboBoxTasks.BorderBrush = new SolidColorBrush(Colors.DarkGray);
+            this.comboBoxCategory.BorderBrush = new SolidColorBrush(Colors.DarkGray);
+            //MessageBox.Show(comboBoxCategory.SelectedValue.ToString() + Environment.NewLine + comboBoxCategory.SelectedItem.ToString());
+            //return;
+
+            string taskId = "";
+            foreach(Dictionary<string, object> task in this.listTask) {
+                if(task["name"].ToString() == comboBoxTasks.SelectedValue.ToString()) {
+                    taskId = task["id"].ToString();
+                }
+            }
+
+            //MessageBox.Show(taskId);
+
+            string categoryId = "";
+            foreach(Dictionary<string, object> cat in this.listCategory) {
+                if(cat["name"].ToString() == comboBoxCategory.SelectedValue.ToString()) {
+                    categoryId = cat["value"].ToString();
+                }
+            }
+
+            //MessageBox.Show(categoryId);
+
+            Int16 workAmount;
+            if(textBoxWorkAmount.Text.Length==0 || !Int16.TryParse(textBoxWorkAmount.Text, out workAmount)) {
+                this.textBoxWorkAmount.BorderBrush = new SolidColorBrush(Colors.Red);
+                return;
+            }
+
+            Int16 percentage;
+            if(textBoxPercentage.Text.Length==0 || !Int16.TryParse(textBoxPercentage.Text, out percentage)) {
+                this.textBoxPercentage.BorderBrush = new SolidColorBrush(Colors.Red);
+                return;
+            }
+
+            this.textBoxWorkAmount.BorderBrush = new SolidColorBrush(Colors.DarkGray);
+            this.textBoxPercentage.BorderBrush = new SolidColorBrush(Colors.DarkGray);
+
+            //===== Outsourced Logic =====
+            /*
+            string unixTimestamp = DateTime.Today.Subtract(new DateTime(1970, 1, 1)).TotalSeconds.ToString();
+            string timestamp = unixTimestamp + "000";
+
+            byte[] bytes = Encoding.Default.GetBytes(textBoxActivity.Text);
+            string activity = Encoding.UTF8.GetString(bytes);
+
+            Hashtable postdata = new Hashtable();
+            //postdata.Add("taskName", "Citrix-General");
+            //postdata.Add("taskName", "Jboss, Linux, Apache, Loadbalancing - AEV");
+            //postdata.Add("date", "1499810400000");        //added 000
+            postdata.Add("date", timestamp);
+            postdata.Add("tenant", settings["tenantvalue"]);
+            postdata.Add("duration", 1);
+            //postdata.Add("category", "OP");             //in comboBoxCategory
+            postdata.Add("category", categoryId);
+            //postdata.Add("activity", "Test");
+            postdata.Add("activity", activity);
+            postdata.Add("userId", settings["userid"]);
+            //postdata.Add("taskId", "2017-01-26 17:11:27.030806");       //taskId in listTask    //Jboss,Linux,Apache,Loadbalancing-AEV
+            postdata.Add("taskId", taskId);
+
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            string json = serializer.Serialize(postdata);
+
+            //MessageBox.Show(json);
+            //MessageBox.Show(webclient.ToString());
+
+            string cookies = "";
+            foreach(string cookie in webclient.Headers.GetValues("Cookie")) {
+                cookies = cookies + cookie;
+            }
+            MessageBox.Show("WebClient Cookies" + Environment.NewLine + cookies);
+
+            string s = "";
+            s = webclient.UploadString("https://projectsuite.aeat.allianz.at/projectsuite/rest/workingStep", json);
+            //MessageBox.Show(s);
+            return;
+            */
+            //===== Outsourced Logic =====
+
+            if(this.buttonDayBooking.IsEnabled == false) {
+                MessageBox.Show("Day Booking");
+                DayBooking booking = new DayBooking();
+                booking.webclient = this.webclient;
+                booking.TaskID = taskId;
+                booking.Category = categoryId;
+                booking.UserID = settings["userid"];
+                booking.Tenant = settings["tenantvalue"];
+                booking.Duration = 1;
+                booking.Activity = textBoxActivity.Text;
+
+                if(workAmount < 1 || workAmount > 24) {
+                    this.textBoxWorkAmount.BorderBrush = new SolidColorBrush(Colors.Red);
+                    return;
+                }
+                booking.Hours = workAmount;
+
+                if(percentage < 1 || percentage > 100) {
+                    this.textBoxPercentage.BorderBrush = new SolidColorBrush(Colors.Red);
+                    return;
+                }
+                booking.Percentage = percentage;
+
+                this.textBoxWorkAmount.BorderBrush = new SolidColorBrush(Colors.DarkGray);
+                this.textBoxPercentage.BorderBrush = new SolidColorBrush(Colors.DarkGray);
+
+                booking.Send();
+            }
+
+            if(this.buttonWeekBooking.IsEnabled == false) {
+                MessageBox.Show("Week Booking");
+                WeekBooking booking = new WeekBooking();
+                booking.webclient = this.webclient;
+                booking.TaskID = taskId;
+                booking.Category = categoryId;
+                booking.UserID = settings["userid"];
+                booking.Tenant = settings["tenantvalue"];
+                booking.Duration = 1;
+                booking.Activity = textBoxActivity.Text;
+
+                if(workAmount < 1 || workAmount > 130) {
+                    this.textBoxWorkAmount.BorderBrush = new SolidColorBrush(Colors.Red);
+                    return;
+                }
+                booking.Hours = workAmount;
+
+                if(percentage < 1 || percentage > 100) {
+                    this.textBoxPercentage.BorderBrush = new SolidColorBrush(Colors.Red);
+                    return;
+                }
+                booking.Percentage = percentage;
+
+                this.textBoxWorkAmount.BorderBrush = new SolidColorBrush(Colors.DarkGray);
+                this.textBoxPercentage.BorderBrush = new SolidColorBrush(Colors.DarkGray);
+
+                booking.Send();
+            }
+
+            if(this.buttonMonthBooking.IsEnabled == false) {
+                MessageBox.Show("Month Booking");
+                MonthBooking booking = new MonthBooking();
+                booking.webclient = this.webclient;
+                booking.TaskID = taskId;
+                booking.Category = categoryId;
+                booking.UserID = settings["userid"];
+                booking.Tenant = settings["tenantvalue"];
+                booking.Duration = 1;
+                booking.Activity = textBoxActivity.Text;
+
+                if(workAmount < 1 || workAmount > 400) {
+                    this.textBoxWorkAmount.BorderBrush = new SolidColorBrush(Colors.Red);
+                    return;
+                }
+                booking.Hours = workAmount;
+
+                if(percentage < 1 || percentage > 100) {
+                    this.textBoxPercentage.BorderBrush = new SolidColorBrush(Colors.Red);
+                    return;
+                }
+                booking.Percentage = percentage;
+
+                this.textBoxWorkAmount.BorderBrush = new SolidColorBrush(Colors.DarkGray);
+                this.textBoxPercentage.BorderBrush = new SolidColorBrush(Colors.DarkGray);
+
+                booking.Send();
+            }
+
+            if(this.buttonLastWeekBooking.IsEnabled == false) {
+                MessageBox.Show("Last Week Booking");
+                WeekBooking booking = new WeekBooking();
+                booking.webclient = this.webclient;
+                booking.TaskID = taskId;
+                booking.Category = categoryId;
+                booking.UserID = settings["userid"];
+                booking.Tenant = settings["tenantvalue"];
+                booking.Duration = 1;
+                booking.Activity = textBoxActivity.Text;
+                //Property for last week
+                booking.SubtractWeeks = 1;
+
+                if(workAmount < 1 || workAmount > 130) {
+                    this.textBoxWorkAmount.BorderBrush = new SolidColorBrush(Colors.Red);
+                    return;
+                }
+                booking.Hours = workAmount;
+
+                if(percentage < 1 || percentage > 100) {
+                    this.textBoxPercentage.BorderBrush = new SolidColorBrush(Colors.Red);
+                    return;
+                }
+                booking.Percentage = percentage;
+
+                this.textBoxWorkAmount.BorderBrush = new SolidColorBrush(Colors.DarkGray);
+                this.textBoxPercentage.BorderBrush = new SolidColorBrush(Colors.DarkGray);
+
+                booking.Send();
+            }
+
+            if(this.buttonLastMonthBooking.IsEnabled == false) {
+                MessageBox.Show("Month Booking");
+                MonthBooking booking = new MonthBooking();
+                booking.webclient = this.webclient;
+                booking.TaskID = taskId;
+                booking.Category = categoryId;
+                booking.UserID = settings["userid"];
+                booking.Tenant = settings["tenantvalue"];
+                booking.Duration = 1;
+                booking.Activity = textBoxActivity.Text;
+                //Property for last month
+                booking.LastMonth = true;
+
+                if(workAmount < 1 || workAmount > 400) {
+                    this.textBoxWorkAmount.BorderBrush = new SolidColorBrush(Colors.Red);
+                    return;
+                }
+                booking.Hours = workAmount;
+
+                if(percentage < 1 || percentage > 100) {
+                    this.textBoxPercentage.BorderBrush = new SolidColorBrush(Colors.Red);
+                    return;
+                }
+                booking.Percentage = percentage;
+
+                this.textBoxWorkAmount.BorderBrush = new SolidColorBrush(Colors.DarkGray);
+                this.textBoxPercentage.BorderBrush = new SolidColorBrush(Colors.DarkGray);
+
+                booking.Send();
+            }
+
+            //booking.Send();
+        }
+    
+    }
+}

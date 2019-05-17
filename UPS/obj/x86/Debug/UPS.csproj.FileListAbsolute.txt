@@ -1,0 +1,14 @@
+C:\Users\A4938.PAD01\Documents\Visual Studio 2010\Projects\svn\UPS\UPS\bin\Debug\UPS.exe
+C:\Users\A4938.PAD01\Documents\Visual Studio 2010\Projects\svn\UPS\UPS\bin\Debug\UPS.pdb
+C:\Users\A4938.PAD01\Documents\Visual Studio 2010\Projects\svn\UPS\UPS\obj\x86\Debug\MainWindow.baml
+C:\Users\A4938.PAD01\Documents\Visual Studio 2010\Projects\svn\UPS\UPS\obj\x86\Debug\MainWindow.g.cs
+C:\Users\A4938.PAD01\Documents\Visual Studio 2010\Projects\svn\UPS\UPS\obj\x86\Debug\App.g.cs
+C:\Users\A4938.PAD01\Documents\Visual Studio 2010\Projects\svn\UPS\UPS\obj\x86\Debug\UPS_MarkupCompile.cache
+C:\Users\A4938.PAD01\Documents\Visual Studio 2010\Projects\svn\UPS\UPS\obj\x86\Debug\UPS.g.resources
+C:\Users\A4938.PAD01\Documents\Visual Studio 2010\Projects\svn\UPS\UPS\obj\x86\Debug\UPS.Properties.Resources.resources
+C:\Users\A4938.PAD01\Documents\Visual Studio 2010\Projects\svn\UPS\UPS\obj\x86\Debug\UPS.csproj.GenerateResource.Cache
+C:\Users\A4938.PAD01\Documents\Visual Studio 2010\Projects\svn\UPS\UPS\obj\x86\Debug\UPS.exe
+C:\Users\A4938.PAD01\Documents\Visual Studio 2010\Projects\svn\UPS\UPS\obj\x86\Debug\UPS.pdb
+C:\Users\A4938.PAD01\Documents\Visual Studio 2010\Projects\svn\UPS\UPS\bin\Debug\UPS.exe.config
+C:\Users\A4938.PAD01\Documents\Visual Studio 2010\Projects\svn\UPS\UPS\obj\x86\Debug\LoginWindow.baml
+C:\Users\A4938.PAD01\Documents\Visual Studio 2010\Projects\svn\UPS\UPS\obj\x86\Debug\LoginWindow.g.cs

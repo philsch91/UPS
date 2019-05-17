@@ -1,0 +1,62 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Web.Script.Serialization;
+using System.Collections;
+using System.Collections.Specialized;
+
+namespace UPS {
+    public class NetworkServices {
+
+        private CookieAwareWebClient webclient = null;
+        public CookieAwareWebClient Webclient {
+            get {
+                return this.webclient;
+            }
+            set {
+                this.webclient = value;
+            }
+        }
+
+        public NetworkServices() { }
+        public NetworkServices(CookieAwareWebClient webclient) {
+            this.Webclient = webclient;
+        }
+
+        public Booking[] GetWorkingSteps(string memberId, string tenantValue, string fromUnixTimestamp, string toUnixTimestamp) {
+            List<Booking> bookings = new List<Booking>();
+
+            NameValueCollection opts = new NameValueCollection();
+            //opts.Add("memberId", settings["userid"]);
+            opts.Add("memberId", memberId);
+            //opts.Add("tenant", settings["tenantvalue"]);
+            opts.Add("tenant", tenantValue);
+            opts.Add("from", fromUnixTimestamp);    //"1499983200000"
+            opts.Add("to", toUnixTimestamp);        //"1499983200000"
+            opts.Add("incl", "true");               //false
+            opts.Add("allTenants", "true");
+
+            this.webclient.QueryString = opts;
+            string json = this.webclient.DownloadString("https://projectsuite.aeat.allianz.at/projectsuite/rest/workingStep");
+            this.webclient.QueryString.Clear();
+
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            List<Dictionary<string,object>> taskList = serializer.Deserialize<List<Dictionary<string,object>>>(json);
+            foreach(Dictionary<string, object> task in taskList) {
+                Booking booking = new Booking();
+                booking.TaskID = task["taskId"].ToString();
+                booking.Date = task["date"].ToString();
+                booking.Duration = Int32.Parse(task["duration"].ToString());
+                Dictionary<string, object> categoryDict = (Dictionary<string, object>)task["user"];
+                //booking.Category = categoryDict["value"].ToString();
+                booking.Tenant = task["tenant"].ToString();
+
+                bookings.Add(booking);
+            }
+
+            Booking[] bookingsArray = bookings.ToArray();
+            return bookingsArray;
+        }
+    }
+}

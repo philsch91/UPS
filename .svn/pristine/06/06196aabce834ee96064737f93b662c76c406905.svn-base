@@ -1,0 +1,114 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using System.Net;
+using System.Web.Script.Serialization;
+using System.Collections;
+using System.Collections.Specialized;
+
+namespace UPS {
+    /// <summary>
+    /// Interaktionslogik für MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow: Window {
+
+        private CookieAwareWebClient webclient;         //private
+        private Dictionary<string, string> settings;    //change to settings object   
+
+        public MainWindow() {
+            InitializeComponent();
+        }
+
+        private void buttonSend_Click(object sender, RoutedEventArgs e) {
+
+            if(webclient == null) {
+                MessageBox.Show("You are not logged in", "Login Failure", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            /*
+            data = new NameValueCollection();
+            data.Add("taskName", "Citrix-General");
+            data.Add("date", "1499810400");*/
+
+            Hashtable postdata = new Hashtable();
+            //postdata.Add("taskName", "Citrix-General");
+            postdata.Add("taskName", "Jboss, Linux, Apache, Loadbalancing - AEV");
+            //postdata.Add("date", 1499810400000);    //added 000
+            postdata.Add("date", 1499810400000);
+            postdata.Add("tenant", settings["tenantvalue"]);
+            postdata.Add("duration", 1);
+            postdata.Add("category", "OP");
+            postdata.Add("activity", "Test");
+            postdata.Add("userId", settings["userid"]);
+            postdata.Add("taskId", "2017-01-26 17:11:27.030806");
+
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            string json = serializer.Serialize(postdata);
+
+            //MessageBox.Show(json);
+            //MessageBox.Show(webclient.ToString());
+
+            string cookies = "";
+            foreach(string cookie in webclient.Headers.GetValues("Cookie")) {
+                cookies = cookies + cookie;
+            }
+            MessageBox.Show("WebClient Cookies" + Environment.NewLine + cookies);
+
+            string s = "";
+            s=webclient.UploadString("https://projectsuite.aeat.allianz.at/projectsuite/rest/workingStep", json);
+            MessageBox.Show(s);
+        }
+
+        private void buttonLogin_Click(object sender, RoutedEventArgs e) {
+            
+            LoginWindow loginWindow = new LoginWindow();
+            loginWindow.Owner = this;
+            this.webclient = new CookieAwareWebClient();
+            loginWindow.WebClient = this.webclient;
+            this.settings = new Dictionary<string, string>();
+            loginWindow.Settings = this.settings;
+            
+            loginWindow.Show();
+
+        }
+
+        //change to ComboBox Event
+        private void buttonTasks_Click(object sender, RoutedEventArgs e) {
+            NameValueCollection opts = new NameValueCollection();
+            opts.Add("date", "1499983200000");
+            opts.Add("incl", "true");
+            opts.Add("taskGroup","globalTasks");
+            opts.Add("tenant",settings["tenantvalue"]);
+            opts.Add("userId",settings["userid"]);
+            opts.Add("viewType","time");
+
+            webclient.QueryString = opts;
+            webclient.Headers.Remove(HttpRequestHeader.ContentType);
+            
+            //byte[] response = webclient.UploadValues("https://projectsuite.aeat.allianz.at/projectsuite/rest/tasksByDateAndGroupAndUser","GET",opts);
+            string json = webclient.DownloadString("https://projectsuite.aeat.allianz.at/projectsuite/rest/tasksByDateAndGroupAndUser");
+
+            webclient.QueryString.Clear();
+            webclient.Headers.Add(HttpRequestHeader.ContentType, "application/json;charset=UTF-8");
+            
+            //string json = Encoding.ASCII.GetString(response);
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            List<object> listTask = serializer.Deserialize<List<object>>(json);
+            foreach(Dictionary<string, object> task in listTask) {
+                string taskName = (string)task["name"];
+                this.comboBox1.Items.Add(taskName);
+            }
+        }
+    }
+}

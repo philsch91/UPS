@@ -1,0 +1,162 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Net;
+using System.Web.Script.Serialization;
+using System.Collections;
+using System.Collections.Specialized;
+
+namespace UPS {
+    public class MonthBooking : Booking {
+
+        private int hours;
+        private int percentage;
+        public bool LastMonth = false;
+
+        public int Hours {
+            get { return this.hours; }
+            set {
+                if(value < 1 || value > 400) {
+                    throw new FormatException("Value must be between 0 and 401");
+                }
+                this.hours = value;
+            }
+        }
+        public int Percentage {
+            get { return this.percentage; }
+            set {
+                if(value < 1 || value > 100) {
+                    throw new FormatException("Value must be between 0 and 101");
+                }
+                this.percentage = value;
+            }
+        }
+
+        public MonthBooking() {
+        }
+
+        public string Send() {
+            /*
+            System.Windows.MessageBox.Show(
+                "hours:" + this.hours.ToString() + Environment.NewLine +
+                "percentage:" + this.percentage.ToString());
+            */
+            string debugmsg = "";
+
+            //string unixTimestamp = DateTime.Today.Subtract(new DateTime(1970, 1, 1)).TotalSeconds.ToString();
+            //string timestamp = unixTimestamp + "000";
+
+            //double splittedHours = Math.Round(((double)this.hours / 100) * this.percentage);
+            Int16 workHours = (Int16)Math.Round(((double)this.hours / 100) * this.percentage);
+            //System.Windows.MessageBox.Show("Work hours: " + workHours.ToString());
+            
+            DateTime today = DateTime.Today;
+            int year = today.Year;
+            int month = today.Month;
+
+            int daysInMonth = DateTime.Now.Day;
+
+            if(this.LastMonth){
+                //=== for last month ===
+                month = today.Month - 1;
+                if(month <= 0) {
+                    year = year - 1;
+                    month = 12;
+                }
+                //DateTime lastMonth = new DateTime(year, month, today.Day);
+                daysInMonth = DateTime.DaysInMonth(year, month);
+                //======================
+            }
+            
+            //System.Windows.MessageBox.Show("Days in Month: " + daysInMonth);
+            debugmsg = debugmsg + "Days in Month: " + daysInMonth + Environment.NewLine;
+
+            List<string> listTimestamps = new List<string>();
+            //Dictionary<string, int> bookings = new Dictionary<string, int>();
+            int day = 1;
+            while(day <= daysInMonth) {
+                DateTime dayInMonth = new DateTime(year, month, day);
+                if(dayInMonth.DayOfWeek != DayOfWeek.Saturday && dayInMonth.DayOfWeek != DayOfWeek.Sunday) {
+                    string dayUnixTimestamp = dayInMonth.Subtract(new DateTime(1970, 1, 1)).TotalSeconds.ToString();
+                    string ts = dayUnixTimestamp + "000";
+                    //System.Windows.MessageBox.Show(dayInMonth.ToString() + Environment.NewLine + timestamp);
+                    listTimestamps.Add(ts);
+                    //bookings.Add(ts, 0);
+                }
+                day++;
+            }
+
+            int avgHoursPerDay = workHours / listTimestamps.Count;
+            //double hoursPerDayPrec = (double)(workHours / listTimestamps.Count);
+            //System.Windows.MessageBox.Show("Average hours per day: " + avgHoursPerDay.ToString());
+            debugmsg = debugmsg + "Average hours per day: " + avgHoursPerDay.ToString() + Environment.NewLine;
+
+            int min=avgHoursPerDay-1;
+            int max=avgHoursPerDay+1;   //+2
+
+            if(min < 0) {
+                //min is -1
+                min=min+2;
+            }
+            if(min == 0) {
+                //min is 0
+                min++;
+            }
+            //if(min == max-1)
+            if(min == max) {
+                max++;
+            }
+
+            //System.Windows.MessageBox.Show("Min: " + min.ToString() + Environment.NewLine
+            //    + "Max: " + max.ToString());
+            debugmsg = debugmsg + ("Min: " + min.ToString() + Environment.NewLine + "Max: " + max.ToString() + Environment.NewLine);
+            System.Windows.MessageBox.Show(debugmsg);
+
+            /*
+            if(hoursPerDay <= 1) {
+                //0.5-1
+                //Random h = new Random(2);
+            } else if(hoursPerDay <= 2) {
+                //1 bis 2
+            } else {
+                //hoursPerDay<=3 || hoursePerDay>3
+                //1 bis 3
+            }*/
+
+            List<int> listWorkHours = new List<int>();
+            int j = 0;
+            int sumHours = 0;
+            Random random = new Random();
+            //foreach(string ts in listTimestamps) {
+            while(j <= listTimestamps.Count && sumHours < workHours){
+                int randomHours = random.Next(min, max+1);
+                if(sumHours + randomHours > workHours) {
+                    if(j < listTimestamps.Count) {
+                        randomHours = min;
+                    } else {
+                        randomHours = workHours - sumHours;
+                    }
+                }
+                //System.Windows.MessageBox.Show(randomHours.ToString());
+                sumHours = sumHours + randomHours;
+                listWorkHours.Add(randomHours);
+                j++;
+            }
+
+            string response = "";
+            int i = 0;
+            //foreach(string date in listTimestamps) {
+                //int hours = listWorkHours[i];
+            foreach(int hours in listWorkHours){
+                if(listTimestamps[i] != null) {
+                    string date = listTimestamps[i];
+                    response = this.InternalSend(date, hours);
+                }
+                i++;
+            }
+
+            return response;
+        }
+    }
+}

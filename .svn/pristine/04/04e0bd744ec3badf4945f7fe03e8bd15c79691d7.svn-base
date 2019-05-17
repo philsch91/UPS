@@ -1,0 +1,157 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Net;
+using System.Web.Script.Serialization;
+using System.Collections;
+using System.Collections.Specialized;
+
+namespace UPS {
+    public class WeekBooking : Booking {
+
+        private int hours;
+        private int percentage;
+        private int subtractWeeks=0;
+
+        public int Hours {
+            get { return this.hours; }
+            set {
+                if(value < 1 || value > 130) {
+                    throw new FormatException("Value must be between 0 and 131");
+                }
+                this.hours = value;
+            }
+        }
+        public int Percentage {
+            get { return this.percentage; }
+            set {
+                if(value < 1 || value > 100) {
+                    throw new FormatException("Value must be between 0 and 101");
+                }
+                this.percentage = value;
+            }
+        }
+
+        public int SubtractWeeks {
+            get { return this.subtractWeeks;}
+            set { //this.subtractWeeks = this.subtractWeeks * (-1);
+                if(value < 1 || value > 2) {
+                    throw new FormatException("Value must be between 0 and 3");
+                }
+                this.subtractWeeks = value;
+            }
+        }
+
+        public WeekBooking() {
+        }
+
+        public string Send() {
+            Int16 workHours = (Int16)Math.Round(((double)this.hours / 100) * this.percentage);
+            //System.Windows.MessageBox.Show("Work hours: " + workHours.ToString());
+
+            string debugmsg = "";
+            
+            string unixTimestamp = DateTime.Today.Subtract(new DateTime(1970, 1, 1)).TotalSeconds.ToString();
+            string timestamp = unixTimestamp + "000";
+
+            DayOfWeek weekDay = DayOfWeek.Sunday;
+            DateTime startDay = DateTime.Today;
+            //System.Windows.MessageBox.Show(weekDay.ToString());
+            //System.Windows.MessageBox.Show("SubtractWeeks: " + this.SubtractWeeks.ToString());
+            
+            int k=0;
+            while(k <= this.subtractWeeks){
+                //int subDays = -1;
+                while(weekDay != DayOfWeek.Monday){
+                    //DateTime day = DateTime.Today.Subtract(new TimeSpan(subDays, 0, 0, 0));
+                    //TimeSpan.FromDays(subDays);
+                    //startDay = DateTime.Today.AddDays(subDays);
+                    startDay = startDay.AddDays(-1);
+                    weekDay = startDay.DayOfWeek;
+                    //subDays--;
+                }
+                weekDay = DayOfWeek.Sunday;
+                k++;
+            }
+
+            //System.Windows.MessageBox.Show(weekDay.ToString() + subDays.ToString());
+            //System.Windows.MessageBox.Show(startDay.ToString() + " " + startDay.DayOfWeek.ToString());
+
+            //int year = DateTime.Today.Year;
+            //int month = DateTime.Today.Month;
+
+            //Dictionary<string, int> bookings = new Dictionary<string, int>();
+            List<string> listTimestamps = new List<string>();
+            //int day = startDay.Day;
+            //int endDay = day + 5;
+            int day = 0;
+            while(day <= 5) {
+                //DateTime dayInWeek = new DateTime(year, month, day);
+                DateTime dayInWeek = startDay.AddDays(day);
+                if(dayInWeek.DayOfWeek != DayOfWeek.Saturday && dayInWeek.DayOfWeek != DayOfWeek.Sunday) {
+                    string dayUnixTimestamp = dayInWeek.Subtract(new DateTime(1970, 1, 1)).TotalSeconds.ToString();
+                    string ts = dayUnixTimestamp + "000";
+                    //System.Windows.MessageBox.Show(dayInWeek.ToString() + Environment.NewLine + ts);
+                    //bookings.Add(ts, 0);
+                    listTimestamps.Add(ts);
+                }
+                day++;
+            }
+
+            int avgHoursPerDay = workHours / listTimestamps.Count;
+            //double hoursPerDayPrec = (double)(workHours / listTimestamps.Count);
+            //System.Windows.MessageBox.Show("Average hours per day: " + avgHoursPerDay.ToString());
+            debugmsg = debugmsg + "Average hours per day: " + avgHoursPerDay.ToString() + Environment.NewLine;
+
+            int min = avgHoursPerDay - 1;
+            int max = avgHoursPerDay + 1;   //+2
+
+            if(min < 0) {
+                //min is -1
+                min = min + 2;
+            }
+            if(min == 0) {
+                //min is 0
+                min++;
+            }
+            //if(min == max-1)
+            if(min == max) {
+                max++;
+            }
+
+            debugmsg = debugmsg + ("Min: " + min.ToString() + Environment.NewLine + "Max: " + max.ToString() + Environment.NewLine
+                + "Booking Days: " + listTimestamps.Count);
+            System.Windows.MessageBox.Show(debugmsg);
+
+            Dictionary<string, int> bookings = new Dictionary<string, int>();
+            int j = 0;
+            int sumHours = 0;
+            Random random = new Random();
+            //foreach(string ts in listTimestamps) {
+            while(j < listTimestamps.Count && sumHours < workHours) {
+                string ts = listTimestamps[j];
+                System.Windows.MessageBox.Show(ts);
+                int randomHours = random.Next(min, max + 1);
+                if(sumHours + randomHours > workHours) {
+                    if(j < bookings.Count) {
+                        randomHours = min;
+                    } else {
+                        randomHours = workHours - sumHours;
+                    }
+                }
+                //System.Windows.MessageBox.Show(randomHours.ToString());
+                sumHours = sumHours + randomHours;
+                bookings.Add(ts, randomHours);
+                j++;
+            }
+
+            string response = "";
+            foreach(KeyValuePair<string, int> booking in bookings) {
+                response = this.InternalSend(booking.Key, booking.Value);
+            }
+
+            return response;
+        }
+    }
+}

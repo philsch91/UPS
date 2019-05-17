@@ -1,0 +1,227 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using System.Net;
+using System.Web.Script.Serialization;
+using System.Collections;
+using System.Collections.Specialized;
+
+namespace UPS {
+    /// <summary>
+    /// Interaktionslogik für MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow: Window {
+
+        private CookieAwareWebClient webclient;         //private
+        private Dictionary<string, string> settings;    //change to settings object
+        private List<object> listTask;
+        private List<object> listCategory;
+
+        public MainWindow() {
+            InitializeComponent();
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e) {
+            LoginWindow loginWindow = new LoginWindow();
+            loginWindow.Owner = this;
+            this.webclient = new CookieAwareWebClient();
+            loginWindow.WebClient = this.webclient;
+            this.settings = new Dictionary<string, string>();
+            loginWindow.Settings = this.settings;
+
+            loginWindow.ShowDialog();
+        }
+
+        private void buttonLogin_Click(object sender, RoutedEventArgs e) {
+            LoginWindow loginWindow = new LoginWindow();
+            loginWindow.Owner = this;
+            this.webclient = new CookieAwareWebClient();
+            loginWindow.WebClient = this.webclient;
+            this.settings = new Dictionary<string, string>();
+            loginWindow.Settings = this.settings;
+            
+            loginWindow.Show();
+        }
+
+        //change to ComboBox Event
+        private void buttonTasks_Click(object sender, RoutedEventArgs e) {            
+            //MessageBox.Show(DateTime.Today.);
+            //Int32 unixTimestamp = Int32.Parse(DateTime.Today.Subtract(new DateTime(1970, 1, 1)).TotalSeconds.ToString());
+            string unixTimestamp = DateTime.Today.Subtract(new DateTime(1970,1,1)).TotalSeconds.ToString();
+            string timestamp = unixTimestamp + "000";
+            //MessageBox.Show(timestamp);
+            
+            NameValueCollection opts = new NameValueCollection();
+            opts.Add("date", timestamp);      //"1499983200000"
+            opts.Add("incl", "true");
+            opts.Add("taskGroup","globalTasks");
+            opts.Add("tenant",settings["tenantvalue"]);
+            opts.Add("userId",settings["userid"]);
+            opts.Add("viewType","time");
+
+            webclient.QueryString = opts;
+            webclient.Headers.Remove(HttpRequestHeader.ContentType);
+            
+            //byte[] response = webclient.UploadValues("https://projectsuite.aeat.allianz.at/projectsuite/rest/tasksByDateAndGroupAndUser","GET",opts);
+            string json = webclient.DownloadString("https://projectsuite.aeat.allianz.at/projectsuite/rest/tasksByDateAndGroupAndUser");
+
+            webclient.QueryString.Clear();
+            webclient.Headers.Add(HttpRequestHeader.ContentType, "application/json;charset=UTF-8");
+            
+            //string json = Encoding.ASCII.GetString(response);
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            this.listTask = serializer.Deserialize<List<object>>(json);
+            
+            this.comboBoxTasks.Items.Clear();
+            foreach(Dictionary<string, object> task in this.listTask) {
+                //string taskName = (string)task["name"];
+                string taskName = task["name"].ToString();
+                this.comboBoxTasks.Items.Add(taskName);
+            }
+        }
+
+        private void tasks_Click(object sender, RoutedEventArgs e) {
+            //MessageBox.Show(e.Source.ToString() + Environment.NewLine + e.OriginalSource.ToString());
+            Button test = (Button) e.OriginalSource;
+            MessageBox.Show(test.Name);
+        }
+
+        private void comboBoxTasks_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+            MessageBox.Show(comboBoxTasks.SelectedItem.ToString());
+            string taskId = "";
+            foreach(Dictionary<string, object> task in this.listTask) {
+                //SelectedItem.ToString()
+                if(task["name"].ToString() == comboBoxTasks.SelectedValue.ToString()) {
+                    MessageBox.Show(task["id"].ToString());
+                    taskId = task["id"].ToString();
+                }
+            }
+            if(taskId == "") {
+                return;
+            }
+            
+            NameValueCollection opts = new NameValueCollection();
+            opts.Add("date", "1500328800000");
+            opts.Add("id", taskId);
+            opts.Add("tenant", settings["tenantvalue"]);
+            //opts.Add("userId", settings["userid"]);
+
+            webclient.QueryString = opts;
+            webclient.Headers.Remove(HttpRequestHeader.ContentType);
+
+            //?date=1500328800000&id=2017-06-09+09:22:35.542451&tenant=O
+            string json = webclient.DownloadString("https://projectsuite.aeat.allianz.at/projectsuite/rest/categoryDomainsByTaskIdAndDate");
+
+            webclient.QueryString.Clear();
+            webclient.Headers.Add(HttpRequestHeader.ContentType, "application/json;charset=UTF-8");
+
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            this.listCategory = serializer.Deserialize<List<object>>(json);
+            
+            this.comboBoxCategory.Items.Clear();
+            foreach(Dictionary<string, object> cat in this.listCategory) {
+                string categoryName = cat["name"].ToString();
+                this.comboBoxCategory.Items.Add(categoryName);
+            }
+        }
+
+        private void buttonSend_Click(object sender, RoutedEventArgs e) {
+            if(webclient == null) {
+                MessageBox.Show("You are not logged in", "Login Failure", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            if(comboBoxTasks.SelectedValue == null) {
+                comboBoxCategory.BorderBrush = new SolidColorBrush(Colors.Red);
+                return;
+            }
+            if(comboBoxCategory.SelectedValue == null) {
+                //MessageBox.Show("No Category selected");
+                comboBoxCategory.BorderBrush = new SolidColorBrush(Colors.Red);
+                return;
+            }
+            comboBoxTasks.BorderBrush = new SolidColorBrush(Colors.DarkGray);
+            comboBoxCategory.BorderBrush = new SolidColorBrush(Colors.DarkGray);
+            //MessageBox.Show(comboBoxCategory.SelectedValue.ToString() + Environment.NewLine + comboBoxCategory.SelectedItem.ToString());
+            //return;
+
+            string taskId = "";
+            foreach(Dictionary<string, object> task in this.listTask) {
+                if(task["name"].ToString() == comboBoxTasks.SelectedValue.ToString()) {
+                    taskId = task["id"].ToString();
+                }
+            }
+
+            MessageBox.Show(taskId);
+
+            string categoryId = "";
+            foreach(Dictionary<string, object> cat in this.listCategory) {
+                if(cat["name"].ToString() == comboBoxCategory.SelectedValue.ToString()) {
+                    categoryId = cat["value"].ToString();
+                }
+            }
+
+            MessageBox.Show(categoryId);
+
+            //===== Outsourced Logic =====
+            /*
+            string unixTimestamp = DateTime.Today.Subtract(new DateTime(1970, 1, 1)).TotalSeconds.ToString();
+            string timestamp = unixTimestamp + "000";
+
+            byte[] bytes = Encoding.Default.GetBytes(textBoxActivity.Text);
+            string activity = Encoding.UTF8.GetString(bytes);
+
+            Hashtable postdata = new Hashtable();
+            //postdata.Add("taskName", "Citrix-General");
+            //postdata.Add("taskName", "Jboss, Linux, Apache, Loadbalancing - AEV");
+            //postdata.Add("date", "1499810400000");        //added 000
+            postdata.Add("date", timestamp);
+            postdata.Add("tenant", settings["tenantvalue"]);
+            postdata.Add("duration", 1);
+            //postdata.Add("category", "OP");             //in comboBoxCategory
+            postdata.Add("category", categoryId);
+            //postdata.Add("activity", "Test");
+            postdata.Add("activity", activity);
+            postdata.Add("userId", settings["userid"]);
+            //postdata.Add("taskId", "2017-01-26 17:11:27.030806");       //taskId in listTask    //Jboss,Linux,Apache,Loadbalancing-AEV
+            postdata.Add("taskId", taskId);
+
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            string json = serializer.Serialize(postdata);
+
+            //MessageBox.Show(json);
+            //MessageBox.Show(webclient.ToString());
+
+            string cookies = "";
+            foreach(string cookie in webclient.Headers.GetValues("Cookie")) {
+                cookies = cookies + cookie;
+            }
+            MessageBox.Show("WebClient Cookies" + Environment.NewLine + cookies);
+
+            string s = "";
+            s = webclient.UploadString("https://projectsuite.aeat.allianz.at/projectsuite/rest/workingStep", json);
+            //MessageBox.Show(s);
+
+            */
+            //===== Outsourced Logic =====
+
+            DayBooking booking = new DayBooking();
+            booking.TaskID = taskId;
+            booking.Category = categoryId;
+            booking.UserID = settings["userId"];
+            booking.Tenant = settings["tenantValue"];
+            booking.Duration = 1;
+            booking.Activity = textBoxActivity.Text;
+        }
+    
+    }
+}
