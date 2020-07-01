@@ -20,7 +20,6 @@ C:\Users\A4938.PAD01\Documents\Visual Studio 2010\Projects\ProjectSuiteApp\UPS\o
 C:\Users\A4938.PAD01\Documents\Visual Studio 2010\Projects\ProjectSuiteApp\UPS\bin\Release\UPS.exe
 C:\Users\A4938.PAD01\Documents\Visual Studio 2010\Projects\ProjectSuiteApp\UPS\bin\Release\UPS.pdb
 C:\Users\A4938.PAD01\Documents\Visual Studio 2010\Projects\ProjectSuiteApp\UPS\bin\Release\PSNetworking.dll
-C:\Users\A4938.PAD01\Documents\Visual Studio 2010\Projects\ProjectSuiteApp\UPS\obj\Release\UPS.csprojResolveAssemblyReference.cache
 C:\Users\A4938.PAD01\Documents\Visual Studio 2010\Projects\ProjectSuiteApp\UPS\obj\Release\LoginWindow.baml
 C:\Users\A4938.PAD01\Documents\Visual Studio 2010\Projects\ProjectSuiteApp\UPS\obj\Release\MainWindow.baml
 C:\Users\A4938.PAD01\Documents\Visual Studio 2010\Projects\ProjectSuiteApp\UPS\obj\Release\LoginWindow.g.cs
@@ -29,4 +28,5 @@ C:\Users\A4938.PAD01\Documents\Visual Studio 2010\Projects\ProjectSuiteApp\UPS\o
 C:\Users\A4938.PAD01\Documents\Visual Studio 2010\Projects\ProjectSuiteApp\UPS\obj\Release\UPS_MarkupCompile.cache
 C:\Users\A4938.PAD01\Documents\Visual Studio 2010\Projects\ProjectSuiteApp\UPS\obj\Release\UPS.g.resources
 C:\Users\A4938.PAD01\Documents\Visual Studio 2010\Projects\ProjectSuiteApp\UPS\obj\Release\UPS.Properties.Resources.resources
+C:\Users\A4938.PAD01\Documents\Visual Studio 2010\Projects\ProjectSuiteApp\UPS\obj\Release\UPS.csprojResolveAssemblyReference.cache
 C:\Users\A4938.PAD01\Documents\Visual Studio 2010\Projects\ProjectSuiteApp\UPS\obj\Release\UPS.csproj.GenerateResource.Cache

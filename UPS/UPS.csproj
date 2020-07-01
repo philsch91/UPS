@@ -111,7 +111,7 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="PSDateTime.cs" />
-    <Compile Include="TasksForAbsenceGetRequest.cs" />
+    <Compile Include="networking\TasksForAbsenceGetRequest.cs" />
     <Compile Include="UPSWorkingStepGetRequest.cs" />
     <Compile Include="Request.cs" />
     <Compile Include="WeekBooking.cs" />
