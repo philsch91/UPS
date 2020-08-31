@@ -10,7 +10,7 @@ namespace UPS {
 
         public static AppSettings shared {
             get {
-                if(instance == null) {
+                if (instance == null) {
                     instance = new AppSettings();
                 }
 
@@ -22,5 +22,6 @@ namespace UPS {
         public String TenantValue { get; set; }
         public String UserId { get; set; }
         public String Token { get; set; }
+        public bool Debug { get; set; }
     }
 }

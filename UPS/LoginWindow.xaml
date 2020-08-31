@@ -10,5 +10,6 @@
         <Button Content="OK" Height="23" HorizontalAlignment="Left" Margin="81,103,0,0" Name="buttonOK" VerticalAlignment="Top" Width="75" Click="buttonOK_Click" IsDefault="True" />
         <TextBlock Height="23" HorizontalAlignment="Left" Margin="18,18,0,0" Name="textBlockStatus" Text="" VerticalAlignment="Top" Width="228" />
         <CheckBox Content="Debug" Height="16" HorizontalAlignment="Left" Margin="193,153,0,0" Name="debugCheckBox" VerticalAlignment="Top" />
+        <CheckBox Content="Default Credentials" Height="16" HorizontalAlignment="Left" Margin="18,153,0,0" Name="defaultCredentialsCheckBox" VerticalAlignment="Top" IsChecked="True" />
     </Grid>
 </Window>

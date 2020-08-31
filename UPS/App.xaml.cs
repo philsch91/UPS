@@ -43,17 +43,17 @@ namespace UPS {
         }
 
         private bool WriteLog(string text) {
-            if(Path.IsPathRooted(this.logfilePath)) {
+            if (Path.IsPathRooted(this.logfilePath)) {
                 string path = Path.GetFullPath(this.logfilePath);
 
-                if(!Directory.Exists(path)) {
+                if (!Directory.Exists(path)) {
                     Directory.CreateDirectory(path);
                 }
             }
 
             text = DateTime.Now.ToString() + " " + text;
 
-            if(text.Substring(text.Length-Environment.NewLine.Length, Environment.NewLine.Length) != Environment.NewLine){
+            if (text.Substring(text.Length-Environment.NewLine.Length, Environment.NewLine.Length) != Environment.NewLine){
                 text += Environment.NewLine;
             }
 

@@ -67,7 +67,7 @@ namespace UPS {
             String[] timestamps = monthBooking.GetTimestamps();
             
             int hours = 0;
-            foreach(String ts in timestamps) {
+            foreach (String ts in timestamps) {
                 
                 NetworkManager manager = NetworkManager.getInstance();
                 
@@ -75,7 +75,7 @@ namespace UPS {
                 services.Webclient = manager;
                 Booking[] dayBookings = services.GetWorkingSteps(ts, ts);
 
-                foreach(Booking booking in dayBookings) {
+                foreach (Booking booking in dayBookings) {
                     hours = hours + booking.Duration;
                 }
                 
@@ -155,7 +155,7 @@ namespace UPS {
             TasksGetRequest tasksRequest = new TasksGetRequest(timestamp, "globalTasks");
             tasksRequest.callback = delegate(object data) {
                 List<object> taskList = (List<object>)data;
-                foreach(Dictionary<string, object> task in taskList) {
+                foreach (Dictionary<string, object> task in taskList) {
                     //string taskName = (string)task["name"];
                     string taskName = task["name"].ToString();
                     this.comboBoxTasks.Items.Add(taskName);
@@ -172,7 +172,7 @@ namespace UPS {
             
             request.callback = delegate(object data){
                 this.taskList = (List<Task>)data;
-                foreach(Task task in this.taskList) {
+                foreach (Task task in this.taskList) {
                     this.comboBoxTasks.Items.Add(task.Name);
                 }
             };
@@ -188,7 +188,7 @@ namespace UPS {
             string taskGroup = "globalTasks";
 
             //if(buttonPeriod == this.buttonDayBooking) {
-            if(sender == this.buttonMyTasks) {
+            if (sender == this.buttonMyTasks) {
                 //this.buttonMyTasks.BorderBrush = new SolidColorBrush(Colors.LightBlue);
                 this.buttonMyTasks.IsEnabled = false;
                 this.buttonLastBooked.IsEnabled = true;
@@ -196,21 +196,21 @@ namespace UPS {
                 this.buttonTeamTasks.IsEnabled = true;
                 taskGroup = "myTasks";
             }
-            if(sender == this.buttonLastBooked) {
+            if (sender == this.buttonLastBooked) {
                 this.buttonMyTasks.IsEnabled = true;
                 this.buttonLastBooked.IsEnabled = false;
                 this.buttonGlobalTasks.IsEnabled = true;
                 this.buttonTeamTasks.IsEnabled = true;
                 taskGroup = "lastBookedTasks";
             }
-            if(sender == this.buttonGlobalTasks) {
+            if (sender == this.buttonGlobalTasks) {
                 this.buttonMyTasks.IsEnabled = true;
                 this.buttonLastBooked.IsEnabled = true;
                 this.buttonGlobalTasks.IsEnabled = false;
                 this.buttonTeamTasks.IsEnabled = true;
                 taskGroup = "globalTasks";
             }
-            if(sender == this.buttonTeamTasks) {
+            if (sender == this.buttonTeamTasks) {
                 this.buttonMyTasks.IsEnabled = true;
                 this.buttonLastBooked.IsEnabled = true;
                 this.buttonGlobalTasks.IsEnabled = true;
@@ -260,8 +260,8 @@ namespace UPS {
             //Button buttonPeriod = (Button)e.OriginalSource;
             //MessageBox.Show(buttonPeriod.Name);
 
-            //if(buttonPeriod == this.buttonDayBooking) {
-            if(sender == this.buttonDayBooking) {
+            //if (buttonPeriod == this.buttonDayBooking) {
+            if (sender == this.buttonDayBooking) {
                 this.buttonDayBooking.IsEnabled = false;
                 this.buttonWeekBooking.IsEnabled = true;
                 this.buttonMonthBooking.IsEnabled = true;
@@ -270,7 +270,7 @@ namespace UPS {
 
                 this.calendar.SelectedDate = DateTime.Today;
             }
-            if(sender == this.buttonWeekBooking) {
+            if (sender == this.buttonWeekBooking) {
                 this.buttonDayBooking.IsEnabled = true;
                 this.buttonWeekBooking.IsEnabled = false;
                 this.buttonMonthBooking.IsEnabled = true;
@@ -282,7 +282,7 @@ namespace UPS {
                 DateTime[] dateTimes = week.DateTimes;
                 this.calendar.SelectedDates.AddRange(dateTimes[0], dateTimes[dateTimes.Length - 1]);
             }
-            if(sender == this.buttonMonthBooking) {
+            if (sender == this.buttonMonthBooking) {
                 this.buttonDayBooking.IsEnabled = true;
                 this.buttonWeekBooking.IsEnabled = true;
                 this.buttonMonthBooking.IsEnabled = false;
@@ -294,7 +294,7 @@ namespace UPS {
                 DateTime[] dateTimes = month.DateTimes;
                 this.calendar.SelectedDates.AddRange(dateTimes[0], dateTimes[dateTimes.Length - 1]);
             }
-            if(sender == this.buttonLastWeekBooking) {
+            if (sender == this.buttonLastWeekBooking) {
                 this.buttonDayBooking.IsEnabled = true;
                 this.buttonWeekBooking.IsEnabled = true;
                 this.buttonMonthBooking.IsEnabled = true;
@@ -307,7 +307,7 @@ namespace UPS {
                 DateTime[] dateTimes = week.DateTimes;
                 this.calendar.SelectedDates.AddRange(dateTimes[0], dateTimes[dateTimes.Length - 1]);
             }
-            if(sender == this.buttonLastMonthBooking) {
+            if (sender == this.buttonLastMonthBooking) {
                 this.buttonDayBooking.IsEnabled = true;
                 this.buttonWeekBooking.IsEnabled = true;
                 this.buttonMonthBooking.IsEnabled = true;
@@ -323,28 +323,28 @@ namespace UPS {
         }
 
         private void calendar_SelectedDatesChanged(object sender, SelectionChangedEventArgs e) {
-            if(!calendarDateChangeFlag) {
+            if (!calendarDateChangeFlag) {
                 return;
             }
             
             Calendar calendar = (Calendar)sender;
 
             Nullable<DateTime> selDateTime = calendar.SelectedDate.Value;
-            if(selDateTime == null) {
+            if (selDateTime == null) {
                 return;
             }
 
             DateTime dateTime = (DateTime)selDateTime;
             //MessageBox.Show(dateTime.ToString());
             
-            if(!this.buttonWeekBooking.IsEnabled) {
+            if (!this.buttonWeekBooking.IsEnabled) {
                 WeekBooking booking = new WeekBooking(dateTime);
                 booking.SetDateTimes();
                 DateTime[] dateTimes = booking.DateTimes;
                 
                 this.calendarDateChangeFlag = false;
                 this.calendar.SelectedDates.AddRange(dateTimes[0], dateTimes[dateTimes.Length - 1]);
-            } else if(!this.buttonMonthBooking.IsEnabled) {
+            } else if (!this.buttonMonthBooking.IsEnabled) {
                 MonthBooking booking = new MonthBooking(dateTime);
                 booking.SetDateTimes();
                 DateTime[] dateTimes = booking.DateTimes;
@@ -359,7 +359,7 @@ namespace UPS {
         private void calendar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
             Calendar calendar = (Calendar)sender;
             Nullable<DateTime> dateTime = calendar.SelectedDate.Value;
-            if(dateTime != null) {
+            if (dateTime != null) {
                 MessageBox.Show(dateTime.ToString());
             }
         }
@@ -367,27 +367,33 @@ namespace UPS {
         private void calendar_MouseLeftButtonUp(object sender, MouseButtonEventArgs e) {
             Calendar calendar = (Calendar)sender;
             Nullable<DateTime> dateTime = calendar.SelectedDate.Value;
-            if(dateTime != null) {
+            if (dateTime != null) {
                 MessageBox.Show(dateTime.ToString());
             }
         }
 
         private void comboBoxTasks_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-            //MessageBox.Show(comboBoxTasks.SelectedItem.ToString());
+            if (sender.GetType().Name.ToString().Equals("ComboBox")) {
+                ComboBox comboBox = (ComboBox)sender;
+                if (comboBox.SelectedValue == null) {
+                    return;
+                }
+            }
+            
             string taskId = "";
-            foreach(Dictionary<string, object> task in this.listTask) {
+            foreach (Dictionary<string, object> task in this.listTask) {
                 //SelectedItem.ToString()
-                if(task["name"].ToString() == comboBoxTasks.SelectedValue.ToString()) {
+                if (task["name"].ToString() == this.comboBoxTasks.SelectedValue.ToString()) {
                     //MessageBox.Show(task["id"].ToString());
                     taskId = task["id"].ToString();
                 }
             }
-            foreach(Task task in this.taskList) {
-                if(task.Name == comboBoxTasks.SelectedValue.ToString()) {
+            foreach (Task task in this.taskList) {
+                if (task.Name == this.comboBoxTasks.SelectedValue.ToString()) {
                     taskId = task.ID;
                 }
             }
-            if(taskId == "") {
+            if (taskId == "") {
                 return;
             }
 
@@ -435,7 +441,7 @@ namespace UPS {
                 this.categoryList = new List<object>();
                 this.comboBoxCategory.Items.Clear();
 
-                foreach(TaskCategory cat in categories) {
+                foreach (TaskCategory cat in categories) {
                     this.categoryList.Add(cat);
                     this.comboBoxCategory.Items.Add(cat.Name);
                 }
@@ -448,16 +454,16 @@ namespace UPS {
             NetworkManager networkManager = NetworkManager.getInstance();
             //MessageBox.Show(networkManager.QueryString.Count.ToString());
 
-            if(networkManager.Headers["X-Authorization"] == null){
+            if (networkManager.Headers["X-Authorization"] == null) {
                 MessageBox.Show("You are not logged in", "Login Failure", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
-            if(comboBoxTasks.SelectedValue == null) {
+            if (this.comboBoxTasks.SelectedValue == null) {
                 comboBoxCategory.BorderBrush = new SolidColorBrush(Colors.Red);
                 return;
             }
-            if(comboBoxCategory.SelectedValue == null) {
+            if (this.comboBoxCategory.SelectedValue == null) {
                 //MessageBox.Show("No Category selected");
                 comboBoxCategory.BorderBrush = new SolidColorBrush(Colors.Red);
                 return;
@@ -468,8 +474,8 @@ namespace UPS {
             //return;
 
             string taskId = "";
-            foreach(Dictionary<string, object> task in this.listTask) {
-                if(task["name"].ToString() == comboBoxTasks.SelectedValue.ToString()) {
+            foreach (Dictionary<string, object> task in this.listTask) {
+                if (task["name"].ToString() == this.comboBoxTasks.SelectedValue.ToString()) {
                     taskId = task["id"].ToString();
                 }
             }
@@ -484,8 +490,8 @@ namespace UPS {
                 }
             }*/
 
-            foreach(TaskCategory taskCat in this.categoryList) {
-                if(taskCat.Name == this.comboBoxCategory.SelectedValue.ToString()) {
+            foreach (TaskCategory taskCat in this.categoryList) {
+                if (taskCat.Name == this.comboBoxCategory.SelectedValue.ToString()) {
                     categoryId = taskCat.Value;
                 }
             }
@@ -493,13 +499,13 @@ namespace UPS {
             //MessageBox.Show("categoryId: " + categoryId);
 
             Int16 workAmount;
-            if(textBoxWorkAmount.Text.Length==0 || !Int16.TryParse(textBoxWorkAmount.Text, out workAmount)) {
+            if (textBoxWorkAmount.Text.Length == 0 || !Int16.TryParse(textBoxWorkAmount.Text, out workAmount)) {
                 this.textBoxWorkAmount.BorderBrush = new SolidColorBrush(Colors.Red);
                 return;
             }
 
             Int16 percentage;
-            if(textBoxPercentage.Text.Length==0 || !Int16.TryParse(textBoxPercentage.Text, out percentage)) {
+            if (textBoxPercentage.Text.Length == 0 || !Int16.TryParse(textBoxPercentage.Text, out percentage)) {
                 this.textBoxPercentage.BorderBrush = new SolidColorBrush(Colors.Red);
                 return;
             }
@@ -530,12 +536,12 @@ namespace UPS {
             postdata.Add("taskId", taskId);
             */
 
-            if(this.buttonDayBooking.IsEnabled == false) {
+            if (this.buttonDayBooking.IsEnabled == false) {
                 MessageBox.Show("Day Booking");
                 DayBooking booking = new DayBooking();
                 
                 //if(this.startDatePicker.SelectedDate.HasValue) {
-                if(this.calendar.SelectedDate.HasValue){
+                if (this.calendar.SelectedDate.HasValue) {
                     //DateTime dt = this.startDatePicker.SelectedDate.Value;   //Nullable
                     DateTime dt = this.calendar.SelectedDate.Value;   //Nullable
                     PSDateTime dateTime = new PSDateTime(dt);
@@ -550,13 +556,13 @@ namespace UPS {
                 booking.Duration = 1;
                 booking.Activity = textBoxActivity.Text;
 
-                if(workAmount < 1 || workAmount > 24) {
+                if (workAmount < 1 || workAmount > 24) {
                     this.textBoxWorkAmount.BorderBrush = new SolidColorBrush(Colors.Red);
                     return;
                 }
                 booking.Hours = workAmount;
 
-                if(percentage < 1 || percentage > 100) {
+                if (percentage < 1 || percentage > 100) {
                     this.textBoxPercentage.BorderBrush = new SolidColorBrush(Colors.Red);
                     return;
                 }
@@ -568,13 +574,13 @@ namespace UPS {
                 booking.Send();
             }
 
-            if(this.buttonWeekBooking.IsEnabled == false) {
+            if (this.buttonWeekBooking.IsEnabled == false) {
                 MessageBox.Show("Week Booking");
                 Nullable<DateTime> dateTime = this.calendar.SelectedDates[this.calendar.SelectedDates.Count-1];
                 //MessageBox.Show(dateTime.ToString());
 
                 WeekBooking booking;
-                if(dateTime != null) {
+                if (dateTime != null) {
                     MessageBox.Show("calendar.SelectedDate is not null");
                     DateTime dt = (DateTime)dateTime;
                     booking = new WeekBooking(dt);
@@ -591,8 +597,8 @@ namespace UPS {
                 booking.Activity = textBoxActivity.Text;
                 
                 int subtractWeeks = 0;
-                if(textBoxWeekNumber.Text!="" && Int32.TryParse(textBoxWeekNumber.Text, out subtractWeeks)){
-                    if(subtractWeeks < 0 || subtractWeeks > 4) {
+                if (textBoxWeekNumber.Text != "" && Int32.TryParse(textBoxWeekNumber.Text, out subtractWeeks)){
+                    if (subtractWeeks < 0 || subtractWeeks > 4) {
                         this.textBoxWeekNumber.BorderBrush = new SolidColorBrush(Colors.Red);
                         return;
                     }
@@ -605,12 +611,12 @@ namespace UPS {
                     booking.SubtractWeeks = subtractWeeks;
                 }
 
-                if(workAmount < 1 || workAmount > 130) {
+                if (workAmount < 1 || workAmount > 130) {
                     this.textBoxWorkAmount.BorderBrush = new SolidColorBrush(Colors.Red);
                     return;
                 }
 
-                if(percentage < 1 || percentage > 100) {
+                if (percentage < 1 || percentage > 100) {
                     this.textBoxPercentage.BorderBrush = new SolidColorBrush(Colors.Red);
                     return;
                 }
@@ -624,13 +630,13 @@ namespace UPS {
                 booking.Send();
             }
 
-            if(this.buttonMonthBooking.IsEnabled == false) {
+            if (this.buttonMonthBooking.IsEnabled == false) {
                 MessageBox.Show("Month Booking");
                 Nullable<DateTime> dateTime = this.calendar.SelectedDates[this.calendar.SelectedDates.Count - 1];
                 
                 //MonthBooking booking = new MonthBooking();
                 MonthBooking booking;
-                if(dateTime != null) {
+                if (dateTime != null) {
                     DateTime dt = (DateTime)dateTime;
                     booking = new MonthBooking(dt);
                 } else {
@@ -645,12 +651,12 @@ namespace UPS {
                 booking.Duration = 1;
                 booking.Activity = textBoxActivity.Text;
 
-                if(workAmount < 1 || workAmount > 400) {
+                if (workAmount < 1 || workAmount > 400) {
                     this.textBoxWorkAmount.BorderBrush = new SolidColorBrush(Colors.Red);
                     return;
                 }
 
-                if(percentage < 1 || percentage > 100) {
+                if (percentage < 1 || percentage > 100) {
                     this.textBoxPercentage.BorderBrush = new SolidColorBrush(Colors.Red);
                     return;
                 }
@@ -664,13 +670,13 @@ namespace UPS {
                 booking.Send();
             }
 
-            if(this.buttonLastWeekBooking.IsEnabled == false) {
+            if (this.buttonLastWeekBooking.IsEnabled == false) {
                 MessageBox.Show("Last Week Booking");
                 Nullable<DateTime> dateTime = this.calendar.SelectedDates[this.calendar.SelectedDates.Count - 1];
 
                 //WeekBooking booking = new WeekBooking();
                 WeekBooking booking;
-                if(dateTime != null) {
+                if (dateTime != null) {
                     MessageBox.Show("calendar.SelectedDate is not null");
                     DateTime dt = (DateTime)dateTime;
                     booking = new WeekBooking(dt);
@@ -687,12 +693,12 @@ namespace UPS {
                 booking.Activity = textBoxActivity.Text;
                 //booking.SubtractWeeks = 1;  //property for last week
 
-                if(workAmount < 1 || workAmount > 130) {
+                if (workAmount < 1 || workAmount > 130) {
                     this.textBoxWorkAmount.BorderBrush = new SolidColorBrush(Colors.Red);
                     return;
                 }
 
-                if(percentage < 1 || percentage > 100) {
+                if (percentage < 1 || percentage > 100) {
                     this.textBoxPercentage.BorderBrush = new SolidColorBrush(Colors.Red);
                     return;
                 }
@@ -706,14 +712,14 @@ namespace UPS {
                 booking.Send();
             }
 
-            if(this.buttonLastMonthBooking.IsEnabled == false) {
+            if (this.buttonLastMonthBooking.IsEnabled == false) {
                 MessageBox.Show("Last Month Booking");
 
                 Nullable<DateTime> dateTime = this.calendar.SelectedDates[this.calendar.SelectedDates.Count - 1];
 
                 //MonthBooking booking = new MonthBooking();
                 MonthBooking booking;
-                if(dateTime != null) {
+                if (dateTime != null) {
                     DateTime dt = (DateTime)dateTime;
                     booking = new MonthBooking(dt);
                 } else {
@@ -730,12 +736,12 @@ namespace UPS {
                 //Property for last month
                 booking.LastMonth = true;
 
-                if(workAmount < 1 || workAmount > 400) {
+                if (workAmount < 1 || workAmount > 400) {
                     this.textBoxWorkAmount.BorderBrush = new SolidColorBrush(Colors.Red);
                     return;
                 }
                 
-                if(percentage < 1 || percentage > 100) {
+                if (percentage < 1 || percentage > 100) {
                     this.textBoxPercentage.BorderBrush = new SolidColorBrush(Colors.Red);
                     return;
                 }
